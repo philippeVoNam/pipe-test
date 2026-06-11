@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pipe-test"
+name = "pipe_test"
 description = "An internal utility tool for the team"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,9 +19,9 @@ classifiers = [
 dynamic = ["version", "dependencies"]
 
 [tool.setuptools]
-packages = ["pipe-test"]
+packages = ["pipe_test"]
 
 # 2. Tell setuptools exactly where to find the dynamic data
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
-version = { attr = "pipe-test.__version__" }
+version = { attr = "pipe_test.__version__" }
