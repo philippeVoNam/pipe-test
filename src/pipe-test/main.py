@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
         card.setGraphicsEffect(shadow)
 
         # Typography & Headers
-        self.title_label = QLabel("Welcome Back !!")
+        self.title_label = QLabel("Welcome Back !!!")
         self.title_label.setObjectName("titleLabel")
         self.title_label.setFont(QFont("Segoe UI", 22))
 
