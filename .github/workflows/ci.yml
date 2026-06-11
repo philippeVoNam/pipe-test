@@ -60,8 +60,8 @@ jobs:
     - name: Compile Executable with PyInstaller
       run: |
         # --onefile: Bundles everything into a single standalone binary
-        # Change 'your_tool_name/main.py' to match your actual entry-point script!
-        pyinstaller --onefile your_tool_name/main.py --name "PipeTest"
+        # Change 'pipe_test/main.py' to match your actual entry-point script!
+        pyinstaller --onefile pipe_test/main.py --name "PipeTest"
 
     - name: Create Automated GitHub Release
       uses: softprops/action-gh-release@v2
