@@ -1,39 +1,71 @@
-name: Python Integration and Validation
+name: CI/CD Production Pipeline
 
-# 1. Trigger: Run this pipeline every time someone pushes to the main branch
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*.*.*' # Triggers on tags like v1.0.0, v1.1.2
 
 jobs:
-  validate-and-test:
-    # 2. Runner: Use a fresh Linux environment managed by GitHub
+  # --------------------------------------------------------
+  # STAGE 1: THE CI JOB (Runs on every push to main and every tag)
+  # --------------------------------------------------------
+  continuous-integration:
     runs-on: ubuntu-latest
-
     steps:
-    # 3. Steps: The actual recipe of tasks to execute
-    - name: Check out repository code
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up Python environment
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-        cache: 'pip' # Speeds up future runs by caching downloads
+        cache: 'pip'
 
-    - name: Install Project Dependencies
+    - name: Install Dependencies
       run: |
-        python -m pip upgrade pip
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pytest flake8
 
-    - name: Run Code Linter (Check Formatting)
-      run: |
-        pip install flake8
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Lint Code (Check style and syntax)
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-    - name: Run Automated Tests
+    - name: Run Unit Tests
+      run: pytest
+
+  # --------------------------------------------------------
+  # STAGE 2: THE CD JOB (Only runs if CI passes AND it's a tag)
+  # --------------------------------------------------------
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    # CRUCIAL: This links CI and CD together. CD will wait for CI to pass.
+    needs: continuous-integration
+    
+    # SAFETY NET: Only execute this job if we explicitly pushed a version tag
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    permissions:
+      contents: write # Allows GitHub to upload files to your Release page
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Build Downloadable Packages
       run: |
-        pip install pytest
-        pytest
+        python -m pip install --upgrade pip
+        pip install build
+        python -m build # Compiles your code into assets (dist/ folder)
+
+    - name: Create Automated GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
